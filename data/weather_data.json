@@ -1,0 +1,22 @@
+[
+    {
+        "city": "Delhi",
+        "temperature": 22.56
+    },
+    {
+        "city": "Mumbai",
+        "temperature": 26.78
+    },
+    {
+        "city": "Chennai",
+        "temperature": 26.03
+    },
+    {
+        "city": "Kolkata",
+        "temperature": 25.6
+    },
+    {
+        "city": "Ahmedabad",
+        "temperature": 26.54
+    }
+]
