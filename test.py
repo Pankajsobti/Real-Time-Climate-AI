@@ -1,0 +1,1 @@
+print("Climate AI started ")
