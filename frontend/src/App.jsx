@@ -1,5 +1,8 @@
 import { useState } from "react";
 import IndiaMap from "./components/IndiaMap";
+import LiveGraphs from "./components/LiveGraphs";
+import FutureForecast from "./components/FutureForecast";
+import DigitalTwin from "./components/DigitalTwin";
 
 function App() {
   const [state, setState] = useState("");
@@ -27,6 +30,9 @@ function App() {
 
       {/* INDIA MAP */}
       <IndiaMap onStateSelect={handleStateSelect} />
+      <LiveGraphs state={state} />
+      <FutureForecast state={state} />
+      <DigitalTwin state={state} />
 
       {/* WEATHER PANEL */}
       {weather && (
