@@ -1,54 +1,61 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import requests
-import json
-import time
-from dotenv import load_dotenv
-import os
+
+app = FastAPI()
+
+# CORS (React connect ke liye)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Coastal vs land logic
+coastal_states = [
+    "Tamil Nadu", "Kerala", "Karnataka", "Goa",
+    "Maharashtra", "Gujarat", "Andhra Pradesh",
+    "Odisha", "West Bengal"
+]
+
+def region_type(state):
+    if state in coastal_states:
+        return "coastal"
+    return "land"
 
 
-def main():
-    load_dotenv()
-    API_KEY = os.getenv("OPENWEATHER_API_KEY")
-
-    # Cities with coordinates (India level foundation)
-    cities = [
-        {"name": "Delhi", "lat": 28.6139, "lon": 77.209},
-        {"name": "Mumbai", "lat": 19.076, "lon": 72.8777},
-        {"name": "Chennai", "lat": 13.0827, "lon": 80.2707},
-        {"name": "Kolkata", "lat": 22.5726, "lon": 88.3639},
-        {"name": "Ahmedabad", "lat": 23.0225, "lon": 72.5714},
-    ]
-
-    while True:
-        weather_data = []
-
-        for city in cities:
-            url = f"https://api.openweathermap.org/data/2.5/weather?q={city['name']}&appid={API_KEY}&units=metric"
-
-            response = requests.get(url)
-
-            if response.status_code == 200:
-                data = response.json()
-
-                weather_data.append({
-                    "city": city["name"],
-                    "temperature": data["main"]["temp"],
-                    "humidity": data["main"]["humidity"],
-                    "weather": data["weather"][0]["description"],
-                    "lat": city["lat"],
-                    "lon": city["lon"]
-                })
-            else:
-                print("Error for", city["name"], response.status_code)
-
-        # Save file
-        with open("data/weather_data.json", "w") as f:
-            json.dump(weather_data, f, indent=4)
-
-        print("Updated weather data")
-
-        # Real-time interval
-        time.sleep(5)  # demo ke liye fast
+# State → city mapping (simple hackathon version)
+state_city = {
+    "Delhi": "Delhi",
+    "Maharashtra": "Mumbai",
+    "Tamil Nadu": "Chennai",
+    "West Bengal": "Kolkata",
+    "Karnataka": "Bangalore",
+    "Gujarat": "Ahmedabad",
+    "Kerala": "Kochi",
+    "Uttar Pradesh": "Lucknow"
+}
 
 
-if __name__ == "__main__":
-    main()
+# API KEY (replace later)
+API_KEY = "YOUR_OPENWEATHER_KEY"
+
+
+@app.get("/weather/{state}")
+def get_weather(state: str):
+    city = state_city.get(state, "Delhi")
+
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+    response = requests.get(url)
+    data = response.json()
+
+    return {
+        "state": state,
+        "region": region_type(state),
+        "temperature": data["main"]["temp"],
+        "humidity": data["main"]["humidity"],
+        "wind": data["wind"]["speed"],
+        "condition": data["weather"][0]["main"]
+    }

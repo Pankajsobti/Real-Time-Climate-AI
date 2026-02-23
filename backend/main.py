@@ -8,7 +8,6 @@ import pandas as pd
 
 app = FastAPI()
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,7 +30,6 @@ def get_weather():
     with open("data/weather_data.json", "r") as f:
         data = json.load(f)
 
-    # AI risk scoring
     for city in data:
         X = pd.DataFrame(
             [[city["temperature"], city["humidity"]]],
@@ -40,13 +38,18 @@ def get_weather():
         risk = model.predict(X)[0]
         city["risk"] = round(float(risk), 2)
 
+        # Flood logic
+        if city["coastal"] == 1 and city["humidity"] > 70:
+            city["flood_risk"] = "High"
+        else:
+            city["flood_risk"] = "Low"
+
     return data
 
 
-# Start streaming thread
 def start_weather():
-    weather_api.main()
-
+    # weather_api.main()
+    pass
 
 thread = threading.Thread(target=start_weather)
 thread.daemon = True
