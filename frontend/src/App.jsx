@@ -3,6 +3,8 @@ import IndiaMap from "./components/IndiaMap";
 import LiveGraphs from "./components/LiveGraphs";
 import FutureForecast from "./components/FutureForecast";
 import DigitalTwin from "./components/DigitalTwin";
+import AlertBanner from "./components/AlertBanner";
+
 
 function App() {
   const [state, setState] = useState("");
@@ -33,7 +35,7 @@ function App() {
       <LiveGraphs state={state} />
       <FutureForecast state={state} />
       <DigitalTwin state={state} />
-
+      <AlertBanner state={state} />
       {/* WEATHER PANEL */}
       {weather && (
         <div className="mt-6 bg-gray-800 p-6 rounded-lg text-white grid grid-cols-2 gap-4">

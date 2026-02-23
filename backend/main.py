@@ -112,3 +112,121 @@ def predict_weather(state: str):
         "state": state,
         "forecast": future
     }        
+@app.get("/risk/{state}")
+def risk_score(state: str):
+    # demo AI risk logic
+    temp = random.uniform(20, 40)
+    humidity = random.uniform(30, 90)
+
+    risk = (temp * 0.6 + humidity * 0.4) / 100
+
+    level = "Low"
+    if risk > 0.7:
+        level = "High"
+    elif risk > 0.4:
+        level = "Moderate"
+
+    return {
+        "state": state,
+        "risk_score": round(risk, 2),
+        "risk_level": level
+    }
+@app.get("/alerts/{state}")
+def disaster_alert(state: str):
+
+    alerts = []
+
+    # ❌ REMOVE FAKE CYCLONE
+    # if state in coastal_states:
+    #     alerts.append("⚠ Cyclone risk in next 48 hours")
+
+    # ✅ Only real weather based alerts
+    city = state_city.get(state, "Delhi")
+
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+    response = requests.get(url)
+    data = response.json()
+
+    if "weather" in data:
+        condition = data["weather"][0]["main"]
+
+        if condition in ["Thunderstorm"]:
+            alerts.append("⚡ Thunderstorm warning")
+
+        if condition in ["Rain"]:
+            alerts.append("🌧 Heavy rainfall possible")
+
+    return {
+        "state": state,
+        "alerts": alerts
+    }
+@app.get("/future-climate/{state}")
+def future_climate(state: str):
+
+    # Real weather based future trend
+    city = state_city.get(state, "Delhi")
+
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+    response = requests.get(url)
+    data = response.json()
+
+    if "main" not in data:
+        return {"error": "weather unavailable"}
+
+    current_temp = data["main"]["temp"]
+    humidity = data["main"]["humidity"]
+
+    # Climate change simulation
+    # (based on global warming trends)
+
+    temp_2050 = current_temp + random.uniform(1.5, 3.5)
+    temp_2100 = current_temp + random.uniform(3, 6)
+
+    drought_risk = "Low"
+    if humidity < 40:
+        drought_risk = "High"
+
+    flood_risk = "Low"
+    if state in coastal_states:
+        flood_risk = "High"
+
+    return {
+        "state": state,
+        "current_temp": current_temp,
+        "2050_temp": round(temp_2050, 2),
+        "2100_temp": round(temp_2100, 2),
+        "drought": drought_risk,
+        "flood": flood_risk
+    }
+
+@app.get("/forecast/{state}")
+def real_forecast(state: str):
+    city = state_city.get(state, "Delhi")
+
+    url = f"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={API_KEY}&units=metric"
+    response = requests.get(url)
+    data = response.json()
+
+    if "list" not in data:
+        return {"error": "forecast unavailable"}
+
+    daily = {}
+
+    for item in data["list"]:
+        date = item["dt_txt"].split(" ")[0]
+        temp = item["main"]["temp"]
+
+        if date not in daily:
+            daily[date] = []
+        daily[date].append(temp)
+
+    # average per day
+    forecast = []
+    for d in list(daily.keys())[:7]:
+        avg = sum(daily[d]) / len(daily[d])
+        forecast.append(round(avg, 2))
+
+    return {
+        "state": state,
+        "forecast": forecast
+    }

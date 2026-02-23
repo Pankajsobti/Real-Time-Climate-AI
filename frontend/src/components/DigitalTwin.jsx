@@ -1,40 +1,31 @@
 import { useEffect, useState } from "react";
 
 export default function DigitalTwin({ state }) {
-  const [forecast, setForecast] = useState([]);
+  const [data, setData] = useState(null);
 
   useEffect(() => {
     if (!state) return;
 
-    fetch(`http://127.0.0.1:8000/predict/${state}`)
+    fetch(`http://127.0.0.1:8000/future-climate/${state}`)
       .then((res) => res.json())
-      .then((d) => setForecast(d.forecast));
+      .then((d) => setData(d));
   }, [state]);
 
-  if (!state) return null;
-
-  const avgTemp =
-    forecast.reduce((a, b) => a + b.temperature, 0) /
-    (forecast.length || 1);
-
-  const risk =
-    avgTemp > 30
-      ? "🔥 Heatwave Risk"
-      : "🌧 Moderate Climate";
+  if (!data) return null;
 
   return (
     <div className="mt-6 grid grid-cols-2 gap-6 text-white">
-      {/* PRESENT */}
       <div className="bg-gray-800 p-4 rounded-lg">
-        <h2 className="text-lg font-bold">Present Reality</h2>
-        <p>Live monitoring of selected region.</p>
+        <h2 className="font-bold">Present Climate</h2>
+        <p>Temperature: {data.current_temp}°C</p>
       </div>
 
-      {/* FUTURE */}
       <div className="bg-gray-800 p-4 rounded-lg">
-        <h2 className="text-lg font-bold">Digital Twin</h2>
-        <p>AI Simulation</p>
-        <p className="mt-2">{risk}</p>
+        <h2 className="font-bold">Future Digital Twin</h2>
+        <p>2050 Temp: {data["2050_temp"]}°C</p>
+        <p>2100 Temp: {data["2100_temp"]}°C</p>
+        <p>Drought Risk: {data.drought}</p>
+        <p>Flood Risk: {data.flood}</p>
       </div>
     </div>
   );
