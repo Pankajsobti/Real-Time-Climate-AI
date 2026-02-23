@@ -3,10 +3,12 @@ import json
 import threading
 import backend.weather_api as weather_api
 from fastapi.middleware.cors import CORSMiddleware
+import joblib
+import pandas as pd
 
 app = FastAPI()
 
-# ✅ CORS allow frontend
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,17 +17,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Load ML model
+model = joblib.load("models/climate_risk.pkl")
+
+
 @app.get("/")
 def home():
     return {"message": "Climate AI backend running"}
+
 
 @app.get("/weather")
 def get_weather():
     with open("data/weather_data.json", "r") as f:
         data = json.load(f)
+
+    # AI risk scoring
+    for city in data:
+        X = pd.DataFrame(
+            [[city["temperature"], city["humidity"]]],
+            columns=["temperature", "humidity"],
+        )
+        risk = model.predict(X)[0]
+        city["risk"] = round(float(risk), 2)
+
     return data
 
 
+# Start streaming thread
 def start_weather():
     weather_api.main()
 

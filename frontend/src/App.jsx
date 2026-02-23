@@ -81,6 +81,48 @@ export default function App() {
           ))}
         </MapContainer>
       </div>
+      {/* Cards with AI Risk */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+  {weather.map((city, i) => (
+    <div
+      key={i}
+      className="bg-gray-800 p-4 rounded border"
+      style={{
+        borderColor:
+          city.risk > 4
+            ? "red"
+            : city.risk > 3
+            ? "orange"
+            : city.risk > 2
+            ? "yellow"
+            : "blue",
+      }}
+    >
+      <h2 className="text-xl">{city.city}</h2>
+      <p>Temp: {city.temperature} °C</p>
+      <p>Humidity: {city.humidity}%</p>
+      <p>{city.weather}</p>
+
+      <p className="mt-2 font-bold">
+        AI Risk Score:{" "}
+        <span
+          style={{
+            color:
+              city.risk > 4
+                ? "red"
+                : city.risk > 3
+                ? "orange"
+                : city.risk > 2
+                ? "yellow"
+                : "cyan",
+          }}
+        >
+          {city.risk}
+        </span>
+      </p>
+    </div>
+  ))}
+</div>
 
       {/* Chart */}
       <div className="mt-10 bg-gray-900 p-5 rounded">
