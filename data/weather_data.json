@@ -1,32 +1,42 @@
 [
     {
         "city": "Delhi",
-        "temperature": 28.97,
-        "humidity": 16,
-        "weather": "clear sky"
+        "temperature": 28.6,
+        "humidity": 19,
+        "weather": "clear sky",
+        "lat": 28.6139,
+        "lon": 77.209
     },
     {
         "city": "Mumbai",
-        "temperature": 27.37,
-        "humidity": 62,
-        "weather": "clear sky"
+        "temperature": 27.92,
+        "humidity": 56,
+        "weather": "clear sky",
+        "lat": 19.076,
+        "lon": 72.8777
     },
     {
         "city": "Chennai",
-        "temperature": 26.73,
-        "humidity": 74,
-        "weather": "overcast clouds"
+        "temperature": 28.05,
+        "humidity": 65,
+        "weather": "overcast clouds",
+        "lat": 13.0827,
+        "lon": 80.2707
     },
     {
         "city": "Kolkata",
-        "temperature": 30.29,
-        "humidity": 24,
-        "weather": "clear sky"
+        "temperature": 31.83,
+        "humidity": 29,
+        "weather": "clear sky",
+        "lat": 22.5726,
+        "lon": 88.3639
     },
     {
         "city": "Ahmedabad",
-        "temperature": 33.5,
-        "humidity": 14,
-        "weather": "clear sky"
+        "temperature": 31.92,
+        "humidity": 18,
+        "weather": "broken clouds",
+        "lat": 23.0225,
+        "lon": 72.5714
     }
 ]
