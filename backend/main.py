@@ -230,3 +230,71 @@ def real_forecast(state: str):
         "state": state,
         "forecast": forecast
     }
+@app.get("/climate/{state}")
+def get_climate(state: str):
+    return {
+        "temperature": [
+            {"day": "Mon", "temp": 30},
+            {"day": "Tue", "temp": 32},
+            {"day": "Wed", "temp": 35},
+        ],
+        "rainfall": [
+            {"day": "Mon", "rain": 5},
+            {"day": "Tue", "rain": 8},
+            {"day": "Wed", "rain": 3},
+        ],
+        "aqi": [
+            {"day": "Mon", "aqi": 150},
+            {"day": "Tue", "aqi": 120},
+            {"day": "Wed", "aqi": 180},
+        ],
+        "risk": [
+            {"day": "Mon", "risk": 0.4},
+            {"day": "Tue", "risk": 0.6},
+            {"day": "Wed", "risk": 0.8},
+        ],
+    }    
+
+# 🔥 Environment real-time streaming
+@app.websocket("/ws/environment/{state}")
+async def environment_stream(websocket: WebSocket, state: str):
+    await websocket.accept()
+
+    while True:
+        city = state_city.get(state, "Delhi")
+
+        # 🔥 get lat lon
+        geo = requests.get(
+            f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={API_KEY}"
+        ).json()
+
+        if not geo:
+            await websocket.send_json({"aqi": 0, "rain": 0})
+            await asyncio.sleep(5)
+            continue
+
+        lat = geo[0]["lat"]
+        lon = geo[0]["lon"]
+
+        # 🔥 AQI
+        aqi_data = requests.get(
+            f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API_KEY}"
+        ).json()
+
+        aqi = aqi_data["list"][0]["main"]["aqi"]
+
+        # 🔥 Rain
+        weather = requests.get(
+            f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+        ).json()
+
+        rain = 0
+        if "rain" in weather:
+            rain = weather["rain"].get("1h", 0)
+
+        await websocket.send_json({
+            "aqi": aqi,
+            "rain": rain
+        })
+
+        await asyncio.sleep(5)    

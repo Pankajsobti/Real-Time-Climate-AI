@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import indiaData from "../data/indiaStates.json";
 
-
 const IndiaMap = ({ onStateSelect }) => {
   const [selected, setSelected] = useState(null);
   const [riskData, setRiskData] = useState({});
@@ -28,6 +27,9 @@ const IndiaMap = ({ onStateSelect }) => {
             ...prev,
             [s]: d.risk_level,
           }));
+        })
+        .catch(() => {
+          console.log("Risk API error");
         });
     });
   }, []);
@@ -67,7 +69,11 @@ const IndiaMap = ({ onStateSelect }) => {
       },
       click: () => {
         setSelected(state);
-        onStateSelect(state);
+
+        // 🔥 send selected state to dashboard
+        if (onStateSelect) {
+          onStateSelect(state);
+        }
       },
     });
 
@@ -78,7 +84,7 @@ const IndiaMap = ({ onStateSelect }) => {
     <MapContainer
       center={[22.5937, 78.9629]}
       zoom={5}
-      style={{ height: "500px", width: "100%" }}
+      style={{ height: "750px", width: "100%" }}
       zoomControl={false}
       dragging={true}
       scrollWheelZoom={false}
@@ -91,9 +97,7 @@ const IndiaMap = ({ onStateSelect }) => {
         style={style}
         onEachFeature={onEachFeature}
       />
-      
     </MapContainer>
-
   );
 };
 
