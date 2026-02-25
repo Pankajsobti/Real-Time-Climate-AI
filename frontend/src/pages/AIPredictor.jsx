@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { AnimatedIcons } from "../components/AnimatedIcons";
 import {
   LineChart,
   Line,
@@ -17,6 +18,7 @@ import {
   Wind,
   Droplets,
   Factory,
+  Globe
 } from "lucide-react";
 
 export default function AIPredictor() {
@@ -37,7 +39,6 @@ export default function AIPredictor() {
     fetchFuture();
   }, [inputs]);
 
-  // 🔥 Risk + explanation API (same as before)
   const fetchPrediction = async () => {
     try {
       const res = await fetch("http://127.0.0.1:8000/ai_predict", {
@@ -49,7 +50,6 @@ export default function AIPredictor() {
       const data = await res.json();
       setPrediction(data);
 
-      // fallback history
       setHistory((prev) => [
         ...prev.slice(-25),
         {
@@ -63,7 +63,6 @@ export default function AIPredictor() {
     }
   };
 
-  // 🔥 REAL AI FUTURE
   const fetchFuture = async () => {
     try {
       const res = await fetch("http://127.0.0.1:8000/future-predict", {
@@ -74,7 +73,6 @@ export default function AIPredictor() {
 
       const data = await res.json();
 
-      // format for graph
       const formatted = data.forecast.map((temp, i) => ({
         time: `Day ${i + 1}`,
         temp,
@@ -94,15 +92,34 @@ export default function AIPredictor() {
     setInputs({ ...inputs, [name]: Number(value) });
   };
 
-  const iconMap = {
-    temp: <Sun size={20} />,
-    aqi: <Factory size={20} />,
-    humidity: <Droplets size={20} />,
-    rainfall: <CloudRain size={20} />,
-    urban: <Wind size={20} />,
-  };
-
+  const iconMap = AnimatedIcons;
   const graphData = futureData.length ? futureData : history;
+
+  /* 🔥 CUSTOM GLOW LEGEND */
+  const CustomLegend = ({ payload }) => {
+    const iconLegend = {
+      temp: <Sun size={14} />,
+      humidity: <Droplets size={14} />,
+      aqi: <Cloud size={14} />,
+      rainfall: <CloudRain size={14} />,
+      urban: <Factory size={14} />,
+    };
+
+    return (
+      <div className="custom-legend">
+        {payload.map((entry, index) => (
+          <span key={index} className="legend-item">
+            <span
+              className="legend-dot"
+              style={{ background: entry.color }}
+            />
+            {iconLegend[entry.value]}
+            <span className="ml-1 capitalize">{entry.value}</span>
+          </span>
+        ))}
+      </div>
+    );
+  };
 
   const SingleGraph = ({ title, dataKey }) => (
     <motion.div
@@ -130,7 +147,6 @@ export default function AIPredictor() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#020b16] via-[#031a2b] to-[#041d2e] text-white p-6">
-
       <div className="max-w-6xl mx-auto">
 
         <h1 className="text-3xl text-center text-cyan-400 mb-6 font-bold">
@@ -146,11 +162,12 @@ export default function AIPredictor() {
           <SingleGraph title="Urbanization Trend" dataKey="urban" />
         </div>
 
-        {/* COMBINED GRAPH */}
+        {/* 🔥 COMBINED GRAPH */}
         <motion.div className="bg-white/10 p-5 rounded-xl mb-8">
-          <h2 className="text-cyan-300 mb-3">
-            🌍 Combined Climate & Risk (AI Future 30 Days)
-          </h2>
+          <h2 className="futuristic-heading">
+  <Globe className="earth-icon" />
+  Combined Climate & Risk (AI Future 30 Days)
+</h2>
 
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={graphData}>
@@ -158,7 +175,10 @@ export default function AIPredictor() {
               <XAxis dataKey="time" />
               <YAxis />
               <Tooltip />
-              <Legend />
+
+              {/* 🔥 GLOW LEGEND */}
+              <Legend content={CustomLegend} />
+
               <Line dataKey="temp" stroke="#facc15" />
               <Line dataKey="humidity" stroke="#60a5fa" />
               <Line dataKey="aqi" stroke="#c084fc" />
@@ -204,7 +224,6 @@ export default function AIPredictor() {
             <Cloud />
           </div>
         )}
-
       </div>
     </div>
   );

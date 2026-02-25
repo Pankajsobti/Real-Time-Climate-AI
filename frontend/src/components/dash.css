@@ -66,3 +66,132 @@
 .tabs button:hover {
   background: #1e293b;
 }
+
+
+/* ===== Simulation futuristic card ===== */
+
+.sim-card {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(14px);
+  padding: 20px;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  transition: 0.3s;
+}
+
+/* Neon animated border */
+.sim-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    #00eaff,
+    #00ffb3,
+    #7a5cff,
+    #00eaff
+  );
+  background-size: 300% 300%;
+  animation: neonMove 5s linear infinite;
+
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+@keyframes neonMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+.sim-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow:
+    0 0 10px #00eaff,
+    0 0 30px rgba(0, 234, 255, 0.4),
+    0 0 60px rgba(0, 255, 180, 0.3);
+}
+
+/* Title glow */
+
+.sim-title {
+  color: #67e8f9;
+  margin-bottom: 12px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-shadow:
+    0 0 6px #00eaff,
+    0 0 14px rgba(0, 234, 255, 0.6);
+}
+
+/* ===== Glowing Legend ===== */
+
+.custom-legend {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0faff;
+  letter-spacing: 0.4px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.legend-item:hover {
+  color: #00eaff;
+  text-shadow:
+    0 0 6px #00eaff,
+    0 0 14px rgba(0, 234, 255, 0.8),
+    0 0 22px rgba(0, 255, 180, 0.6);
+  transform: scale(1.05);
+}
+
+/* neon dot */
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  box-shadow:
+    0 0 8px currentColor,
+    0 0 14px currentColor;
+}
+/* ===== FUTURISTIC HEADING ===== */
+
+.futuristic-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #67e8f9;
+  letter-spacing: 0.6px;
+  text-shadow:
+    0 0 8px #00eaff,
+    0 0 20px rgba(0, 234, 255, 0.6);
+}
+
+/* Earth glow + rotation */
+
+.earth-icon {
+  color: #00eaff;
+  filter: drop-shadow(0 0 6px #00eaff);
+  animation: earthRotate 8s linear infinite;
+}
+
+@keyframes earthRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

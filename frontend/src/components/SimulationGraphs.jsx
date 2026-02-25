@@ -9,10 +9,28 @@ import {
 } from "recharts";
 
 export default function SimulationGraphs({ history }) {
+
+  const CustomLegend = ({ payload }) => {
+    
+    return (
+      <div className="custom-legend">
+        {payload.map((entry, index) => (
+          <span key={index} className="legend-item">
+            <span
+              className="legend-dot"
+              style={{ background: entry.color }}
+            ></span>
+            {entry.value}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-white/10 p-6 rounded-xl">
-      <h2 className="text-cyan-300 mb-4">
-        Simulation Trends (Temp, AQI, Risk etc.)
+    <div className="sim-card">
+      <h2 className="sim-title">
+        Combined Climate & Risk (AI Future 30 Days)
       </h2>
 
       <ResponsiveContainer width="100%" height={300}>
@@ -20,7 +38,9 @@ export default function SimulationGraphs({ history }) {
           <XAxis dataKey="time" />
           <YAxis />
           <Tooltip />
-          <Legend />
+
+          {/* 🔥 CUSTOM LEGEND */}
+          <Legend content={<CustomLegend />} />
 
           <Line dataKey="temp" />
           <Line dataKey="humidity" />
