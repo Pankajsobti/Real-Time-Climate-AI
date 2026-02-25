@@ -4,6 +4,34 @@ import asyncio
 import random
 import requests
 from pydantic import BaseModel
+import torch
+import torch.nn as nn
+import numpy as np
+import joblib
+import os
+
+# 🔥 PyTorch LSTM model (same as training)
+class ClimateLSTM(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size=3, hidden_size=64, batch_first=True)
+        self.fc = nn.Linear(64, 3)
+
+    def forward(self, x):
+        out, _ = self.lstm(x)
+        out = out[:, -1, :]
+        return self.fc(out)
+    
+BASE_DIR = os.path.dirname(__file__)
+
+model_path = os.path.join(BASE_DIR, "models", "india_lstm.pt")
+scaler_path = os.path.join(BASE_DIR, "models", "scaler.pkl")
+
+model = ClimateLSTM()
+model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
+model.eval()
+
+scaler = joblib.load(scaler_path)    
 app = FastAPI()
 
 # CORS
@@ -356,3 +384,43 @@ def predict(data: ClimateInput):
         "flood": flood,
         "explanation": explanation
     }
+
+@app.post("/future-predict")
+def future_predict(data: ClimateInput):
+
+    # Input prepare
+    input_features = np.array([
+        data.temp,
+        data.humidity,
+        data.rainfall
+    ]).reshape(1, -1)
+
+    scaled = scaler.transform(input_features)
+
+    # create fake history window from input
+    window = np.repeat(scaled, 30, axis=0)
+    window = torch.tensor(window.reshape(1, 30, 3), dtype=torch.float32)
+
+    predictions = []
+
+    for _ in range(30):
+        with torch.no_grad():
+            output = model(window).numpy()[0]
+
+        # inverse scale
+        inv = scaler.inverse_transform(output.reshape(1, -1))[0]
+
+        predictions.append({
+            "temp": round(inv[0], 2),
+            "humidity": round(inv[1], 2),
+            "rainfall": round(inv[2], 2),
+        })
+
+        # slide window
+        new_scaled = scaler.transform(inv.reshape(1, -1))
+        window = torch.cat([
+            window[:, 1:, :],
+            torch.tensor(new_scaled.reshape(1, 1, 3), dtype=torch.float32)
+        ], dim=1)
+
+    return {"forecast": predictions}

@@ -30,11 +30,14 @@ export default function AIPredictor() {
 
   const [prediction, setPrediction] = useState(null);
   const [history, setHistory] = useState([]);
+  const [futureData, setFutureData] = useState([]);
 
   useEffect(() => {
     fetchPrediction();
+    fetchFuture();
   }, [inputs]);
 
+  // 🔥 Risk + explanation API (same as before)
   const fetchPrediction = async () => {
     try {
       const res = await fetch("http://127.0.0.1:8000/ai_predict", {
@@ -46,7 +49,7 @@ export default function AIPredictor() {
       const data = await res.json();
       setPrediction(data);
 
-      // 🔥 store full history
+      // fallback history
       setHistory((prev) => [
         ...prev.slice(-25),
         {
@@ -57,6 +60,33 @@ export default function AIPredictor() {
       ]);
     } catch {
       console.log("Backend error");
+    }
+  };
+
+  // 🔥 REAL AI FUTURE
+  const fetchFuture = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/future-predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inputs),
+      });
+
+      const data = await res.json();
+
+      // format for graph
+      const formatted = data.forecast.map((temp, i) => ({
+        time: `Day ${i + 1}`,
+        temp,
+        humidity: inputs.humidity,
+        aqi: inputs.aqi,
+        rainfall: inputs.rainfall,
+        urban: inputs.urban,
+      }));
+
+      setFutureData(formatted);
+    } catch {
+      console.log("Future prediction error");
     }
   };
 
@@ -72,7 +102,8 @@ export default function AIPredictor() {
     urban: <Wind size={20} />,
   };
 
-  // 🔥 reusable graph component
+  const graphData = futureData.length ? futureData : history;
+
   const SingleGraph = ({ title, dataKey }) => (
     <motion.div
       className="bg-white/10 p-4 rounded-xl backdrop-blur-lg border border-cyan-400/20"
@@ -81,7 +112,7 @@ export default function AIPredictor() {
       <h3 className="text-cyan-300 text-sm mb-2">{title}</h3>
 
       <ResponsiveContainer width="100%" height={180}>
-        <LineChart data={history}>
+        <LineChart data={graphData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="time" />
           <YAxis />
@@ -102,28 +133,27 @@ export default function AIPredictor() {
 
       <div className="max-w-6xl mx-auto">
 
-        {/* HEADER */}
         <h1 className="text-3xl text-center text-cyan-400 mb-6 font-bold">
           🔮 Climate AI Dashboard
         </h1>
 
-        {/* 🔥 INDIVIDUAL GRAPHS */}
+        {/* INDIVIDUAL GRAPHS */}
         <div className="grid md:grid-cols-3 gap-4 mb-6">
-          <SingleGraph title="Temperature Trend" dataKey="temp" />
+          <SingleGraph title="Temperature Trend (AI Future)" dataKey="temp" />
           <SingleGraph title="Humidity Trend" dataKey="humidity" />
           <SingleGraph title="AQI Trend" dataKey="aqi" />
           <SingleGraph title="Rainfall Trend" dataKey="rainfall" />
           <SingleGraph title="Urbanization Trend" dataKey="urban" />
         </div>
 
-        {/* 🔥 COMBINED GRAPH */}
+        {/* COMBINED GRAPH */}
         <motion.div className="bg-white/10 p-5 rounded-xl mb-8">
           <h2 className="text-cyan-300 mb-3">
-            🌍 Combined Climate & Risk Graph
+            🌍 Combined Climate & Risk (AI Future 30 Days)
           </h2>
 
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={history}>
+            <LineChart data={graphData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" />
               <YAxis />
@@ -134,12 +164,11 @@ export default function AIPredictor() {
               <Line dataKey="aqi" stroke="#c084fc" />
               <Line dataKey="rainfall" stroke="#22d3ee" />
               <Line dataKey="urban" stroke="#4ade80" />
-              <Line dataKey="risk" stroke="#ff4d4d" strokeWidth={3} />
             </LineChart>
           </ResponsiveContainer>
         </motion.div>
 
-        {/* 🔥 SLIDERS */}
+        {/* SLIDERS */}
         <div className="grid md:grid-cols-2 gap-4">
           {Object.keys(inputs).map((key) => (
             <motion.div
