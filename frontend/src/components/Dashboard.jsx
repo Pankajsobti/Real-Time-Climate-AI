@@ -1,17 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import TemperatureChart from "./TemperatureChart";
 import HumidityChart from "./HumidityChart";
 import WindChart from "./WindChart";
 import AQIChart from "./AQIChart";
 import RainChart from "./RainChart";
-import RiskChart from "./RiskChart";
-import FutureForecast from "./FutureForecast";
 import DigitalTwin from "./DigitalTwin";
 import "./dash.css";
 import StateMap from "./StateMap";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard({ selectedState }) {
   const [tab, setTab] = useState("weather");
+
+  // 🔥 ADD THIS (important)
+  const navigate = useNavigate();
 
   return (
     <div className="dashboard-container">
@@ -22,7 +24,10 @@ export default function Dashboard({ selectedState }) {
         <div className="tabs">
           <button onClick={() => setTab("weather")}>Weather</button>
           <button onClick={() => setTab("env")}>Environment</button>
-          <button onClick={() => setTab("ai")}>AI</button>
+
+          {/* 🔥 AI now opens new page */}
+          <button onClick={() => navigate("/ai")}>AI</button>
+
           <button onClick={() => setTab("twin")}>Digital Twin</button>
         </div>
 
@@ -38,13 +43,6 @@ export default function Dashboard({ selectedState }) {
           <>
             <AQIChart state={selectedState} />
             <RainChart state={selectedState} />
-          </>
-        )}
-
-        {tab === "ai" && (
-          <>
-            <RiskChart state={selectedState} />
-            <FutureForecast state={selectedState} />
           </>
         )}
 
