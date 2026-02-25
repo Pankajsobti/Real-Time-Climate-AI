@@ -1,77 +1,182 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  CartesianGrid,
+} from "recharts";
+import {
+  Sun,
+  CloudRain,
+  Cloud,
+  Wind,
+  Droplets,
+  Factory,
+} from "lucide-react";
 
-function AIPredictor() {
-  const [input, setInput] = useState({
-    temperature: 30,
-    humidity: 50,
-    aqi: 120,
-    rainfall: 10,
-    population: 5,
-    urban: 60,
+export default function AIPredictor() {
+  const [inputs, setInputs] = useState({
+    temp: 30,
+    aqi: 80,
+    humidity: 60,
+    rainfall: 40,
+    urban: 50,
   });
 
-  const [result, setResult] = useState(null);
+  const [prediction, setPrediction] = useState(null);
+  const [history, setHistory] = useState([]);
 
-  const handleChange = (e) => {
-    setInput({ ...input, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    fetchPrediction();
+  }, [inputs]);
 
-  const predict = async () => {
+  const fetchPrediction = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/ai-predict", {
+      const res = await fetch("http://127.0.0.1:8000/ai_predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
+        body: JSON.stringify(inputs),
       });
 
       const data = await res.json();
-      setResult(data);
-    } catch (err) {
-      console.log("AI error", err);
+      setPrediction(data);
+
+      // 🔥 store full history
+      setHistory((prev) => [
+        ...prev.slice(-25),
+        {
+          time: new Date().toLocaleTimeString(),
+          ...inputs,
+          risk: data.risk,
+        },
+      ]);
+    } catch {
+      console.log("Backend error");
     }
   };
 
+  const handleChange = (name, value) => {
+    setInputs({ ...inputs, [name]: Number(value) });
+  };
+
+  const iconMap = {
+    temp: <Sun size={20} />,
+    aqi: <Factory size={20} />,
+    humidity: <Droplets size={20} />,
+    rainfall: <CloudRain size={20} />,
+    urban: <Wind size={20} />,
+  };
+
+  // 🔥 reusable graph component
+  const SingleGraph = ({ title, dataKey }) => (
+    <motion.div
+      className="bg-white/10 p-4 rounded-xl backdrop-blur-lg border border-cyan-400/20"
+      whileHover={{ scale: 1.02 }}
+    >
+      <h3 className="text-cyan-300 text-sm mb-2">{title}</h3>
+
+      <ResponsiveContainer width="100%" height={180}>
+        <LineChart data={history}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Line
+            type="monotone"
+            dataKey={dataKey}
+            stroke="#00ffff"
+            strokeWidth={2}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </motion.div>
+  );
+
   return (
-    <div className="p-10 min-h-screen bg-black text-white">
-      <h1 className="text-3xl mb-6">🤖 AI Climate Simulator</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[#020b16] via-[#031a2b] to-[#041d2e] text-white p-6">
 
-      <div className="grid grid-cols-2 gap-6">
-        {Object.keys(input).map((key) => (
-          <div key={key}>
-            <label>{key}</label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              name={key}
-              value={input[key]}
-              onChange={handleChange}
-            />
-          </div>
-        ))}
-      </div>
+      <div className="max-w-6xl mx-auto">
 
-      <button
-        onClick={predict}
-        className="bg-blue-500 px-6 py-3 mt-6 rounded-xl"
-      >
-        Predict Risk
-      </button>
+        {/* HEADER */}
+        <h1 className="text-3xl text-center text-cyan-400 mb-6 font-bold">
+          🔮 Climate AI Dashboard
+        </h1>
 
-      {result && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-6 p-6 bg-gray-900 rounded-xl"
-        >
-          <h2>Flood Risk: {result.flood}</h2>
-          <h2>Heat Risk: {result.heat}</h2>
-          <h2>Crop Loss: {result.crop}</h2>
+        {/* 🔥 INDIVIDUAL GRAPHS */}
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <SingleGraph title="Temperature Trend" dataKey="temp" />
+          <SingleGraph title="Humidity Trend" dataKey="humidity" />
+          <SingleGraph title="AQI Trend" dataKey="aqi" />
+          <SingleGraph title="Rainfall Trend" dataKey="rainfall" />
+          <SingleGraph title="Urbanization Trend" dataKey="urban" />
+        </div>
+
+        {/* 🔥 COMBINED GRAPH */}
+        <motion.div className="bg-white/10 p-5 rounded-xl mb-8">
+          <h2 className="text-cyan-300 mb-3">
+            🌍 Combined Climate & Risk Graph
+          </h2>
+
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={history}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line dataKey="temp" stroke="#facc15" />
+              <Line dataKey="humidity" stroke="#60a5fa" />
+              <Line dataKey="aqi" stroke="#c084fc" />
+              <Line dataKey="rainfall" stroke="#22d3ee" />
+              <Line dataKey="urban" stroke="#4ade80" />
+              <Line dataKey="risk" stroke="#ff4d4d" strokeWidth={3} />
+            </LineChart>
+          </ResponsiveContainer>
         </motion.div>
-      )}
+
+        {/* 🔥 SLIDERS */}
+        <div className="grid md:grid-cols-2 gap-4">
+          {Object.keys(inputs).map((key) => (
+            <motion.div
+              key={key}
+              className="bg-white/10 p-4 rounded-xl flex flex-col gap-2"
+            >
+              <div className="flex justify-between">
+                <span className="capitalize">{key}</span>
+                {iconMap[key]}
+              </div>
+
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={inputs[key]}
+                onChange={(e) => handleChange(key, e.target.value)}
+              />
+
+              <span>{inputs[key]}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* RESULT */}
+        {prediction && (
+          <div className="mt-6 p-5 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex justify-between">
+            <div>
+              <p>Risk: {prediction.risk}</p>
+              <p>Future Temp: {prediction.future_temp}</p>
+              <p>Flood: {prediction.flood}</p>
+            </div>
+            <Cloud />
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
-
-export default AIPredictor;
